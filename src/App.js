@@ -1,76 +1,57 @@
-import React, { useState } from 'react';
+import logo from './logo.svg';
 import './App.css';
-// import Button from '@material-ui/core/Button';
+import liff from '@line/liff';
+import { useEffect, useState } from 'react';
 
-const liff = window.liff;
+function App() {
+  liff.init({ liffId: '2005543120-1ravm4zq' }, () => {
+    if (liff.isLoggedIn()) {
+      runApp();
+    } else {
+      liff.login();
+    }
+  }, err => console.error(err));
 
-const App = () => {
-  const [name, setName] = useState('');
-  const [userLineID, setUserLineID] = useState('');
-  const [pictureUrl, setPictureUrl] = useState('');
-  const [statusMessage, setStatusMessage] = useState('');
+  const [pictureUrl, setPictureUrl] = useState(logo);
+  const [idToken, setIdToken] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [userId, setUserId] = useState("");
 
-  const getProfile = async () => {
-    await liff.init();
-    let getProfile = await liff.getProfile();
-    setName(getProfile.displayName);
-    setUserLineID(getProfile.userId);
-    setPictureUrl(getProfile.pictureUrl);
-    setStatusMessage(getProfile.statusMessage);
-  };
+  const logout = () => {
+    liff.logout();
+    window.location.reload();
+  }
 
-  const sendMessage = () => {
-    liff.sendMessages([{
-      type: 'text',
-      text: "Hi LIFF"
-    }]).then(() => {
-      liff.closeWindow();
-    });
-  };
-
-  const closeLIFF = () => {
-    liff.closeWindow();
-  };
+  const runApp = () => {
+    const idToken = liff.getIDToken();
+    setIdToken(idToken);
+    liff.getProfile().then(profile => {
+      console.log(profile);
+      setDisplayName(profile.displayName);
+      setPictureUrl(profile.pictureUrl);
+      setStatusMessage(profile.statusMessage);
+      setUserId(profile.userId);
+    }).catch(err => console.error(err));
+  }
 
   return (
     <div className="App">
       <header className="App-header">
-        <div className="support">
-          <img width="25%" src="https://img.icons8.com/color/420/line-me.png" />
-          <img width="25%" src="https://lh3.googleusercontent.com/illfpW97yh9TtvtmtN-BiNcpomys5gzAj4nw8Je6Ydby814PRquAPcvsP2tAV43Iqe8logzjUnjp7tN5Dvk" />
-        </div>
-        <div className="support">
-          {
-            pictureUrl && pictureUrl !== '' &&
-            <img width="25%" src={pictureUrl} />
-          }
-        </div>
-        {
-          name && name !== '' &&
-          <p>Name: {name}</p>
-        }
-        {
-          userLineID && userLineID !== '' &&
-          <p>LineID: {userLineID}</p>
-        }
-        {
-          statusMessage && statusMessage !== '' &&
-          <p>statusMessage: {statusMessage}</p>
-        }
-        <div className="support">
-          {/* <Button variant="contained"  style={{ marginRight: '20px' }} color="primary">
-            Getdata INFO
-          </Button>
-          <Button variant="contained"  style={{ marginRight: '20px' }}>
-            Send Message
-          </Button>
-          <Button variant="contained"  color="secondary">
-            Close LIFF
-          </Button> */}
-        </div>
+      <div style={{ textAlign: "center" }}>
+        <h1>React with LINE Login nakub</h1>
+        <hr/>
+        <img src={pictureUrl} width="300px" height="300px"/>
+        <p style={{ textAlign: "left", marginLeft: "20%", marginRight: "20%", wordBreak: "break-all" }}><b>id token: </b> {idToken}</p>
+        <p style={{ textAlign: "left", marginLeft: "20%", marginRight: "20%", wordBreak: "break-all" }}><b>display name: </b> {displayName}</p>
+        <p style={{ textAlign: "left", marginLeft: "20%", marginRight: "20%", wordBreak: "break-all" }}><b>status message: </b> {statusMessage}</p>
+        <p style={{ textAlign: "left", marginLeft: "20%", marginRight: "20%", wordBreak: "break-all" }}><b>user id: </b> {userId}</p>
+
+        <button onClick={() => logout()} style={{ width: "100%", height: 30 }}>Logout</button>
+      </div>
       </header>
     </div>
   );
-};
+}
 
 export default App;
